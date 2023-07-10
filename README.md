@@ -4,21 +4,14 @@
 <p align="center" style="margin-bottom: 0px !important;">
   <img width="200" src=".github/assets/fedoraware.png" alt="Fedoraware logo." align="center">
 </p>
-<h2 align="center" style="margin-top: 0px;">SE-Owned but coollllll</h2>
+<h2 align="center" style="margin-top: 0px;">SE-Owned but better,</h2>
 <p align="center">
 <a href="https://github.com/tf2cheater2013/Fedoraware/stargazers"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/tf2cheater2013/Fedoraware"></a>
-<a href="https://discord.gg/YcVKhnAAEY"><img alt="Fedoraware Discord Server" src="https://img.shields.io/discord/1069923050499354624?label=Discord&logo=Discord"></a>  
 <a href="https://github.com/tf2cheater2013/Fedoraware/actions"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/Fedoraware/Fedoraware/msbuild.yml?branch=main"></a>
 <a href="https://github.com/tf2cheater2013/Fedoraware/commits/main"><img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/w/tf2cheater2013/Fedoraware"></a>
 </p>  
 
 <hr/>
-
-<p align="center">
-<a href="https://nightly.link/Fedoraware/Fedoraware/workflows/msbuild/main/Fedoraware.zip">
-<img src=".github/assets/download.png" align="center" width="100%" height="auto">
-</a>
-</p>
 
 ## Notes:
 - It is required to use dxlevel 90+ due to issues with ImGui.
@@ -34,7 +27,6 @@
 ## Media:  
 - [Fedoraware is the best free cheat in tf2 (by bean)](https://www.youtube.com/watch?v=FyeaMghYZL0)
 - [The Crew (by Josep)](https://www.youtube.com/watch?v=7I44S9sSOcc)
-- [Playing as Michael Jackson (by km)](https://www.youtube.com/watch?v=cVD3BBEMNPo)
 
 ![Screenshot](https://user-images.githubusercontent.com/17802843/161588254-5cf29b82-fd70-41c1-90c3-f77b29014a68.png)
 
