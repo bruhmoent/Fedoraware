@@ -13,8 +13,8 @@ namespace Vars
 {
 	namespace Menu
 	{
-		inline std::string CheatName = "Fedoraware";
-		inline std::string CheatPrefix = "[FeD]";
+		inline std::string CheatName = "X-Services";
+		inline std::string CheatPrefix = "[XS]";
 
 		inline bool ModernDesign = false;
 		inline bool ShowPlayerlist = false;
@@ -28,7 +28,7 @@ namespace Vars
 
 		namespace Colors
 		{
-			inline Color_t MenuAccent = { 255, 101, 101, 255 };
+			inline Color_t MenuAccent = { 255, 255, 101, 125 };
 		}
 	}
 

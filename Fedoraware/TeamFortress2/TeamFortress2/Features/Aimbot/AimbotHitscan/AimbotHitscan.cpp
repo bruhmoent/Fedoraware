@@ -2,6 +2,7 @@
 #include "../../Vars.h"
 #include "../../Backtrack/Backtrack.h"
 #include "../../Resolver/Resolver.h"
+#include <random>
 
 bool IsHitboxValid(int nHitbox, int index, bool bStatic = false)
 {
@@ -516,55 +517,123 @@ void CAimbotHitscan::Aim(CUserCmd* pCmd, Vec3& vAngle)
 
 	switch (nAimMethod)
 	{
-		case 0: //Plain
+	case 0: // Plain
+	{
+		pCmd->viewangles = vAngle;
+		I::EngineClient->SetViewAngles(pCmd->viewangles);
+		break;
+	}
+
+	case 1: // Smooth
+	{
+		if (Vars::Aimbot::Hitscan::SmoothingAmount.Value == 0)
 		{
+			// Plain aim at 0 smoothing factor
 			pCmd->viewangles = vAngle;
 			I::EngineClient->SetViewAngles(pCmd->viewangles);
 			break;
 		}
 
-		case 1: //Smooth
+		// Calculate delta of current viewangles and wanted angles
+		Vec3 vecDelta = vAngle - I::EngineClient->GetViewAngles();
+
+		// Clamp, keep the angle in possible bounds
+		Math::ClampAngles(vecDelta);
+
+		// Basic smooth by dividing the delta by wanted smooth amount
+		pCmd->viewangles += vecDelta / Vars::Aimbot::Hitscan::SmoothingAmount.Value;
+
+		// Look for enemies
+		static bool isAiming = false;
+		static Vec3 targetAngle;
+		static float moveSpeed = 1.0f; // Adjust the movement speed as needed
+		static float errorRange = 10.0f; // Adjust the error range as needed
+
+		if (G::IsAttacking)
 		{
-			if (Vars::Aimbot::Hitscan::SmoothingAmount.Value == 0)
-			{
-				// plain aim at 0 smoothing factor
-				pCmd->viewangles = vAngle;
-				I::EngineClient->SetViewAngles(pCmd->viewangles);
-				break;
-			}
-			//Calculate delta of current viewangles and wanted angles
-			Vec3 vecDelta = vAngle - I::EngineClient->GetViewAngles();
-
-			//Clamp, keep the angle in possible bounds
-			Math::ClampAngles(vecDelta);
-
-			//Basic smooth by dividing the delta by wanted smooth amount
-			pCmd->viewangles += vecDelta / Vars::Aimbot::Hitscan::SmoothingAmount.Value;
-
-			//Set the viewangles from engine
-			I::EngineClient->SetViewAngles(pCmd->viewangles);
-			break;
+			// Reset aiming state
+			isAiming = false;
 		}
 
-		case 2: //Silent
+		if (!isAiming && !G::IsAttacking)
 		{
-			if (Vars::Aimbot::Global::FlickatEnemies.Value && !G::ShouldShift)
+			// Start aiming at the target
+			isAiming = true;
+
+			// Generate a new target angle with a slight random offset
+			static std::random_device rd;
+			static std::mt19937 gen(rd());
+			static std::uniform_real_distribution<float> randomOffset(-errorRange, errorRange);
+			targetAngle = vAngle + Vec3(randomOffset(gen), randomOffset(gen), 0.0f);
+		}
+
+		if (isAiming)
+		{
+			// Calculate delta between current angle and target angle
+			Vec3 deltaAngle = targetAngle - pCmd->viewangles;
+
+			// Clamp, keep the angle in possible bounds
+			Math::ClampAngles(deltaAngle);
+
+			// Calculate the movement amount based on the moveSpeed
+			Vec3 movement = deltaAngle * moveSpeed * I::GlobalVars->interval_per_tick;
+
+			// Update the viewangles with the movement
+			pCmd->viewangles += movement;
+
+			// Check if reached the target angle
+			if (deltaAngle.Length() <= errorRange)
 			{
-				if (G::IsAttacking)
-				{
-					Utils::FixMovement(pCmd, vAngle);
-					pCmd->viewangles = vAngle;
-				}
+				isAiming = false;
 			}
-			else
+		}
+
+		// Set the viewangles from engine
+		I::EngineClient->SetViewAngles(pCmd->viewangles);
+		break;
+	}
+
+
+	case 2: // Silent
+	{
+		if (Vars::Aimbot::Global::FlickatEnemies.Value && !G::ShouldShift)
+		{
+			if (G::IsAttacking)
 			{
 				Utils::FixMovement(pCmd, vAngle);
 				pCmd->viewangles = vAngle;
 			}
-			break;
 		}
+		else
+		{
+			Utils::FixMovement(pCmd, vAngle);
+			pCmd->viewangles = vAngle;
+		}
+		break;
+	}
 
-		default: break;
+	default: break;
+	}
+
+	// Look around randomly when not shooting targets
+	if (!G::IsAttacking)
+	{
+		static std::random_device rd;
+		static std::mt19937 gen(rd());
+		static std::uniform_real_distribution<float> randomAngle(-180.0f, 180.0f);
+
+		float targetYaw = pCmd->viewangles.y + randomAngle(gen);
+		float currentYaw = I::EngineClient->GetViewAngles().y;
+		float smoothFactor = 10.0f; // Adjust the smooth factor as needed
+
+		float deltaYaw = targetYaw - currentYaw;
+		Math::NormalizeAngle(deltaYaw);
+
+		float smoothedYaw = currentYaw + deltaYaw / smoothFactor;
+		Math::NormalizeAngle(smoothedYaw);
+
+		pCmd->viewangles.y = smoothedYaw;
+		I::EngineClient->SetViewAngles(pCmd->viewangles);
 	}
 }
 

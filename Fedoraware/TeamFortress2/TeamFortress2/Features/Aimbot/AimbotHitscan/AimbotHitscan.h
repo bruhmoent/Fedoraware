@@ -14,6 +14,7 @@ class CAimbotHitscan
 	void Aim(CUserCmd* pCmd, Vec3& vAngle);
 	bool ShouldFire(CBaseEntity* pLocal, CBaseCombatWeapon* pWeapon, const CUserCmd* pCmd, const Target_t& target);
 	bool IsAttacking(const CUserCmd* pCmd, CBaseCombatWeapon* pWeapon);
+	bool isSearching = false;
 
 	int PriorityHitbox = 1; // this is the first hitbox we want to scan, just ignore it.
 
