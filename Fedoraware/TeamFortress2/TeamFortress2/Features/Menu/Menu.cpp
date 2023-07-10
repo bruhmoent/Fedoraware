@@ -1848,7 +1848,8 @@ void CMenu::MenuMisc()
 
 			SectionTitle("Followbot");
 			WToggle("Enable Followbot###FollowbotEnable", &Vars::Misc::Followbot::Enabled.Value); HelpMarker("Follows a player around.");
-			WToggle("Friends only###FollowbotFriends", &Vars::Misc::Followbot::FriendsOnly.Value); HelpMarker("Only follow friends");
+			WToggle("Friends only###FollowbotFriends", &Vars::Misc::Followbot::FriendsOnly.Value); HelpMarker("Only follow friends.");
+			WToggle("Look at target###FollowbotLookAtTarget", &Vars::Misc::Followbot::LookAtTarget.Value); HelpMarker("Follows the view angle of the target.");
 			WSlider("Follow Distance###FollowbotDistance", &Vars::Misc::Followbot::Distance.Value, 50.f, 400.f, "%.0f"); HelpMarker("How close we should follow the target");
 
 			/*SectionTitle("Leaderboard");

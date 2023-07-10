@@ -513,6 +513,7 @@ bool CConfigManager::SaveConfig(const std::string& configName)
 			// Followbot
 			{
 				SAVE_VAR(Vars::Misc::Followbot::Enabled);
+				SAVE_VAR(Vars::Misc::Followbot::LookAtTarget);
 				SAVE_VAR(Vars::Misc::Followbot::Distance);
 			}
 
@@ -902,6 +903,7 @@ bool CConfigManager::LoadConfig(const std::string& configName)
 			// Followbot
 			{
 				LOAD_VAR(Vars::Misc::Followbot::Enabled);
+				LOAD_VAR(Vars::Misc::Followbot::LookAtTarget);
 				LOAD_VAR(Vars::Misc::Followbot::Distance);
 			}
 

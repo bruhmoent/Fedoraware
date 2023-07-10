@@ -715,6 +715,7 @@ namespace Vars
 		{
 			inline CVar<bool> Enabled{ false };
 			inline CVar<bool> FriendsOnly{ false };
+			inline CVar<bool> LookAtTarget{ false };
 			inline CVar<float> Distance{ 150.f };
 		}
 

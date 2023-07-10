@@ -60,71 +60,107 @@ CBaseEntity* CFollowbot::FindTarget(CBaseEntity* pLocal)
 
 void CFollowbot::Run(CUserCmd* pCmd)
 {
-	const auto& pLocal = g_EntityCache.GetLocal();
-	if (!Vars::Misc::Followbot::Enabled.Value || !pLocal || !pLocal->IsAlive())
-	{
-		Reset();
-		return;
-	}
+    const auto& pLocal = g_EntityCache.GetLocal();
+    if (!Vars::Misc::Followbot::Enabled.Value || !pLocal || !pLocal->IsAlive())
+    {
+        Reset();
+        return;
+    }
 
-	// Find a new target if we don't have one
-	if (!ValidTarget(CurrentTarget, pLocal) || PathNodes.size() >= 300)
-	{
-		Reset();
-		CurrentTarget = FindTarget(pLocal);
-	}
-	if (!CurrentTarget) { return; }
+    // Find a new target if we don't have one
+    if (!ValidTarget(CurrentTarget, pLocal) || PathNodes.size() >= 300)
+    {
+        Reset();
+        CurrentTarget = FindTarget(pLocal);
+    }
+    if (!CurrentTarget)
+    {
+        // Reset followbot if there's no valid target
+        Reset();
+        return;
+    }
 
-	// Store the target position and follow him
-	static Timer pathTimer{};
-	if (pathTimer.Run(100))
-	{
-		if (PathNodes.empty())
-		{
-			PathNodes.push_back({ CurrentTarget->GetAbsOrigin(), CurrentTarget->OnSolid() });
-		}
-		else
-		{
-			const auto& lastNode = PathNodes.back();
-			if (CurrentTarget->GetAbsOrigin().DistTo(lastNode.Location) >= 5.f)
-			{
-				PathNodes.push_back({ CurrentTarget->GetAbsOrigin(), CurrentTarget->OnSolid() });
-			}
-		}
-	}
+    // Store the target position and follow him
+    static Timer pathTimer{};
+    if (pathTimer.Run(100))
+    {
+        if (PathNodes.empty())
+        {
+            PathNodes.push_back({ CurrentTarget->GetAbsOrigin(), CurrentTarget->OnSolid() });
+        }
+        else
+        {
+            const auto& lastNode = PathNodes.back();
+            if (CurrentTarget->GetAbsOrigin().DistTo(lastNode.Location) >= 5.f)
+            {
+                PathNodes.push_back({ CurrentTarget->GetAbsOrigin(), CurrentTarget->OnSolid() });
+            }
+        }
+    }
 
-	// Walk to the next node
-	if (!PathNodes.empty())
-	{
-		auto& currentNode = PathNodes.front();
-		const Vec3 localPos = pLocal->GetAbsOrigin();
+    // Smoothly transition the view angles
+    if (!PathNodes.empty())
+    {
+        auto& currentNode = PathNodes.front();
+        const Vec3 localPos = pLocal->GetAbsOrigin();
 
-		if (localPos.Dist2D(currentNode.Location) >= NODE_DISTANCE)
-		{
-			if (localPos.DistTo(CurrentTarget->GetAbsOrigin()) >= Vars::Misc::Followbot::Distance.Value)
-			{
-				Utils::WalkTo(pCmd, pLocal, currentNode.Location);
-			}
+        if (localPos.Dist2D(currentNode.Location) >= NODE_DISTANCE)
+        {
+            if (localPos.DistTo(CurrentTarget->GetAbsOrigin()) >= Vars::Misc::Followbot::Distance.Value)
+            {
+                Utils::WalkTo(pCmd, pLocal, currentNode.Location);
+            }
 
-			if (!currentNode.OnGround)
-			{
-				if (!pLocal->OnSolid())
-				{
-					currentNode.OnGround = true;
-				}
-				else
-				{
-					pCmd->buttons |= IN_JUMP;
-				}
-			}
-		}
-		else
-		{
-			PathNodes.pop_front();
-		}
+            if (!currentNode.OnGround)
+            {
+                if (!pLocal->OnSolid())
+                {
+                    currentNode.OnGround = true;
+                }
+                else
+                {
+                    pCmd->buttons |= IN_JUMP;
+                }
+            }
 
-		OptimizePath(pLocal);
-	}
+            if (Vars::Misc::Followbot::LookAtTarget.Value) {
+                // Calculate the target view angles based on the target's yaw
+                const float targetYaw = Math::CalcAngle(localPos, currentNode.Location).y;
+                const Vec3 currentViewAngles = pCmd->viewangles;
+                const float delta = Math::NormalizeAngle(targetYaw - currentViewAngles.y);
+
+                // Check if the delta is within a reasonable range
+                if (std::abs(delta) > 0.1f)
+                {
+                    const float maxAngleStep = Vars::Aimbot::Hitscan::SmoothingAmount.Value;
+
+                    // Limit the angle step to prevent excessive changes
+                    const float clampedDelta = std::clamp(delta, -maxAngleStep, maxAngleStep);
+                    const float interpolatedYaw = Math::NormalizeAngle(currentViewAngles.y + clampedDelta);
+                    const Vec3 interpolatedAngles = Vec3(currentViewAngles.x, interpolatedYaw, currentViewAngles.z);
+
+                    pCmd->viewangles = interpolatedAngles;
+                    I::EngineClient->SetViewAngles(pCmd->viewangles);
+                }
+                else
+                {
+                    const Vec3 targetViewAngles = Vec3(currentViewAngles.x, targetYaw, currentViewAngles.z);
+                    pCmd->viewangles = targetViewAngles;
+                    I::EngineClient->SetViewAngles(pCmd->viewangles);
+                }
+            }
+        }
+        else
+        {
+            PathNodes.pop_front();
+        }
+
+        OptimizePath(pLocal);
+    }
+    else
+    {
+        Reset();
+    }
 }
 
 void CFollowbot::Reset()
