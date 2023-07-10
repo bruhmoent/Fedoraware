@@ -546,7 +546,7 @@ void CAimbotHitscan::Aim(CUserCmd* pCmd, Vec3& vAngle)
 		break;
 	}
 
-	case 2: //Silent
+	case 2: // Silent
 	{
 		if (Vars::Aimbot::Global::FlickatEnemies.Value && !G::ShouldShift)
 		{
